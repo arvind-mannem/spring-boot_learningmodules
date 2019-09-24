@@ -1,35 +1,66 @@
 package com.example.studentMarks;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/students")
 public class GetAverage {
 
-	private Marks marks;
-
+	private List<StudentProfile> profileList;
+	private List<Integer> idList;
+	
 	@Autowired
-	GetAverage(Marks marks) {
-		this.marks = marks;
+	public GetAverage(List<StudentProfile> profileList , List<Integer> idList) {
+		this.profileList=profileList;
+		this.idList=idList;
 	}
 
+	//get all students
+	@RequestMapping(method=RequestMethod.GET)
+	public List<StudentProfile> studentList(){
+		return profileList;
+	}
+	
+	//post student details
 	@PostMapping("/marks")
-	public Marks setMarks(@RequestBody Marks m) {
-		this.marks.setMaths(m.getMaths() + 5);
-		this.marks.setPhysics(m.getPhysics() + 5);
-		this.marks.setChemistry(m.getChemistry() + 5);
-		this.marks.setAvg();
-		return marks;
+	@Autowired
+	public StudentProfile setProfile(@RequestBody StudentProfile p,StudentProfile studentProfile) {
+		studentProfile.setId(p.getId());
+		studentProfile.setName(p.getName());
+		studentProfile.setMaths(p.getMaths());
+		studentProfile.setPhysics(p.getPhysics());
+		studentProfile.setChemistry(p.getChemistry());
+		studentProfile.setAvg();
+		profileList.add(studentProfile);
+		idList.add(p.getId());
+		return studentProfile;
+	}
+	
+	//get student average by id
+	@GetMapping("/{id}/avg")
+	public double getAvg(@PathVariable (value="id") int id) {
+		return profileList.get(idList.indexOf(id)+1).getAvg();
+	}
+	
+	//get student by id
+	@GetMapping("/{id}")
+	public StudentProfile getStudent(@PathVariable (value="id") int id) {
+		return profileList.get(idList.indexOf(id)+1);
 	}
 
-	@GetMapping("/avgofallsubjects")
-	public double getAvg() {
-		return this.marks.getAvg();
+	@RequestMapping(value = "delete/{id}", method = RequestMethod.DELETE)
+	public String delete(@PathVariable("id") int id) {
+		profileList.remove(idList.indexOf(id));
+		idList.remove(idList.indexOf(id));
+		return "Student with "+id+" is successfully deleted";
 	}
-
 }
